@@ -1,0 +1,46 @@
+### Variables
+@baseUrl = http://localhost:3000/api
+@token = your-jwt-token-here
+
+### ============================================
+### AI ENDPOINTS (Rate Limited: 10 req/min)
+### ============================================
+
+### Rewrite bullet points to be more impactful
+POST {{baseUrl}}/ai/rewrite
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "Worked on various projects"
+}
+
+### Improve wording for professional impact
+POST {{baseUrl}}/ai/improve
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "I did some work on a project"
+}
+
+### Generate professional summary
+POST {{baseUrl}}/ai/generate-summary
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "experience": "Software Engineer with 5 years of experience developing web applications using React, Node.js, and TypeScript",
+  "skills": ["JavaScript", "TypeScript", "React", "Node.js", "PostgreSQL"]
+}
+
+### Suggest skills based on experience
+POST {{baseUrl}}/ai/suggest-skills
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "experience": "Worked as a software engineer for 5 years developing web applications using React and Node.js. Led a team of 3 developers and implemented CI/CD pipelines."
+}
+
+

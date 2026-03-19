@@ -1,0 +1,82 @@
+### ============================================
+### JazaCV API - All Endpoints
+### Quick Reference File
+### ============================================
+
+@baseUrl = http://localhost:3000/api
+@token = your-jwt-token-here
+@adminToken = admin-jwt-token-here
+
+### ============================================
+### AUTH
+### ============================================
+# POST   {{baseUrl}}/auth/register
+# POST   {{baseUrl}}/auth/login
+# POST   {{baseUrl}}/auth/refresh
+# POST   {{baseUrl}}/auth/forgot-password
+# POST   {{baseUrl}}/auth/reset-password
+# GET    {{baseUrl}}/auth/me
+
+### ============================================
+### USERS (Profile Management)
+### ============================================
+# GET    {{baseUrl}}/users/me
+# GET    {{baseUrl}}/users/me/stats
+# PATCH  {{baseUrl}}/users/me
+# PATCH  {{baseUrl}}/users/me/password
+# DELETE {{baseUrl}}/users/me
+
+### ============================================
+### RESUMES
+### ============================================
+# GET    {{baseUrl}}/resumes
+# GET    {{baseUrl}}/resumes/:id
+# POST   {{baseUrl}}/resumes
+# PATCH  {{baseUrl}}/resumes/:id
+# DELETE {{baseUrl}}/resumes/:id
+# POST   {{baseUrl}}/resumes/:id/duplicate
+# GET    {{baseUrl}}/resumes/:id/download
+
+### ============================================
+### TEMPLATES
+### ============================================
+# GET    {{baseUrl}}/templates
+# GET    {{baseUrl}}/templates/:id
+
+### ============================================
+### AI FEATURES
+### ============================================
+# POST   {{baseUrl}}/ai/rewrite
+# POST   {{baseUrl}}/ai/improve
+# POST   {{baseUrl}}/ai/generate-summary
+# POST   {{baseUrl}}/ai/suggest-skills
+
+### ============================================
+### PAYMENTS
+### ============================================
+# POST   {{baseUrl}}/payments/create-checkout
+# POST   {{baseUrl}}/payments/webhook
+# GET    {{baseUrl}}/payments/subscription
+# POST   {{baseUrl}}/payments/cancel
+
+### ============================================
+### ADMIN (Admin Access Required)
+### ============================================
+# GET    {{baseUrl}}/admin/stats
+# GET    {{baseUrl}}/admin/users
+# GET    {{baseUrl}}/admin/users/:id
+# PATCH  {{baseUrl}}/admin/users/:id
+# DELETE {{baseUrl}}/admin/users/:id
+# GET    {{baseUrl}}/admin/resumes
+# DELETE {{baseUrl}}/admin/resumes/:id
+# POST   {{baseUrl}}/admin/templates
+# PATCH  {{baseUrl}}/admin/templates/:id
+# DELETE {{baseUrl}}/admin/templates/:id
+# GET    {{baseUrl}}/admin/subscriptions
+
+### ============================================
+### SWAGGER DOCUMENTATION
+### ============================================
+# GET    http://localhost:3000/api/docs
+
+

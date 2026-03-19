@@ -1,0 +1,75 @@
+### Variables
+@baseUrl = http://localhost:3000/api
+@token = your-jwt-token-here
+@resumeId = resume-uuid-here
+@templateId = template-uuid-here
+
+### ============================================
+### RESUMES ENDPOINTS
+### ============================================
+
+### Get all resumes (user's resumes)
+GET {{baseUrl}}/resumes
+Authorization: Bearer {{token}}
+
+### Get resume by ID
+GET {{baseUrl}}/resumes/{{resumeId}}
+Authorization: Bearer {{token}}
+
+### Create a new resume
+POST {{baseUrl}}/resumes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Software Engineer Resume",
+  "templateId": "{{templateId}}"
+}
+
+### Update resume
+PATCH {{baseUrl}}/resumes/{{resumeId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Resume Title",
+  "content": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1234567890",
+    "summary": "Experienced software engineer",
+    "experience": [
+      {
+        "title": "Senior Software Engineer",
+        "company": "Tech Corp",
+        "startDate": "2020-01",
+        "endDate": "2024-01",
+        "description": "Led development of web applications"
+      }
+    ],
+    "education": [
+      {
+        "degree": "BS Computer Science",
+        "institution": "University",
+        "graduationDate": "2019"
+      }
+    ],
+    "skills": ["JavaScript", "TypeScript", "React", "Node.js"]
+  },
+  "isComplete": true,
+  "completionScore": 95
+}
+
+### Delete resume
+DELETE {{baseUrl}}/resumes/{{resumeId}}
+Authorization: Bearer {{token}}
+
+### Duplicate resume
+POST {{baseUrl}}/resumes/{{resumeId}}/duplicate
+Authorization: Bearer {{token}}
+
+### Download resume as PDF
+GET {{baseUrl}}/resumes/{{resumeId}}/download
+Authorization: Bearer {{token}}
+
+

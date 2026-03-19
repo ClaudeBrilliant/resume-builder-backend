@@ -1,0 +1,108 @@
+### Variables
+@baseUrl = http://localhost:3000/api
+@adminToken = admin-jwt-token-here
+@userId = user-uuid-here
+@resumeId = resume-uuid-here
+@templateId = template-uuid-here
+
+### ============================================
+### ADMIN ENDPOINTS (Admin Access Required)
+### ============================================
+
+### ============================================
+### ADMIN - STATISTICS
+### ============================================
+
+### Get dashboard statistics
+GET {{baseUrl}}/admin/stats
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### ADMIN - USER MANAGEMENT
+### ============================================
+
+### Get all users (paginated)
+GET {{baseUrl}}/admin/users?page=1&limit=10
+Authorization: Bearer {{adminToken}}
+
+### Get all users with search
+GET {{baseUrl}}/admin/users?page=1&limit=10&search=john
+Authorization: Bearer {{adminToken}}
+
+### Get user by ID
+GET {{baseUrl}}/admin/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+
+### Update user
+PATCH {{baseUrl}}/admin/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Name",
+  "plan": "PRO",
+  "isAdmin": false
+}
+
+### Delete user
+DELETE {{baseUrl}}/admin/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### ADMIN - RESUME MANAGEMENT
+### ============================================
+
+### Get all resumes (paginated)
+GET {{baseUrl}}/admin/resumes?page=1&limit=10
+Authorization: Bearer {{adminToken}}
+
+### Get all resumes with search
+GET {{baseUrl}}/admin/resumes?page=1&limit=10&search=engineer
+Authorization: Bearer {{adminToken}}
+
+### Delete resume
+DELETE {{baseUrl}}/admin/resumes/{{resumeId}}
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### ADMIN - TEMPLATE MANAGEMENT
+### ============================================
+
+### Create template
+POST {{baseUrl}}/admin/templates
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Modern Template",
+  "category": "MODERN",
+  "thumbnail": "https://example.com/thumbnail.jpg",
+  "structure": {
+    "sections": ["header", "summary", "experience", "education", "skills"]
+  },
+  "isPremium": false
+}
+
+### Update template
+PATCH {{baseUrl}}/admin/templates/{{templateId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Template Name",
+  "isPremium": true
+}
+
+### Delete template
+DELETE {{baseUrl}}/admin/templates/{{templateId}}
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### ADMIN - SUBSCRIPTION MANAGEMENT
+### ============================================
+
+### Get all subscriptions (paginated)
+GET {{baseUrl}}/admin/subscriptions?page=1&limit=10
+Authorization: Bearer {{adminToken}}
+
+

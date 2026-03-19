@@ -1,0 +1,44 @@
+### Variables
+@baseUrl = http://localhost:3000/api
+@token = your-jwt-token-here
+
+### ============================================
+### PAYMENTS ENDPOINTS (Stripe)
+### ============================================
+
+### Create Stripe checkout session
+POST {{baseUrl}}/payments/create-checkout
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "plan": "PRO"
+}
+
+### Get current user subscription
+GET {{baseUrl}}/payments/subscription
+Authorization: Bearer {{token}}
+
+### Cancel subscription
+POST {{baseUrl}}/payments/cancel
+Authorization: Bearer {{token}}
+
+### Stripe Webhook (Note: Requires Stripe CLI for local testing)
+POST {{baseUrl}}/payments/webhook
+Content-Type: application/json
+stripe-signature: your-stripe-signature-here
+
+{
+  "type": "checkout.session.completed",
+  "data": {
+    "object": {
+      "id": "cs_test_xxx",
+      "metadata": {
+        "userId": "user-uuid-here"
+      },
+      "subscription": "sub_test_xxx"
+    }
+  }
+}
+
+

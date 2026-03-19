@@ -1,0 +1,98 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  FREE
+  PRO
+}
+
+enum TemplateCategory {
+  MODERN
+  PROFESSIONAL
+  CREATIVE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  INCOMPLETE
+}
+
+model User {
+  id               String         @id @default(uuid())
+  email            String         @unique
+  password         String
+  name             String
+  avatar           String?
+  plan             Plan           @default(FREE)
+  isAdmin          Boolean        @default(false)
+  stripeCustomerId String?        @unique
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  resumes          Resume[]
+  subscriptions    Subscription[]
+
+  @@map("users")
+}
+
+model Resume {
+  id              String   @id @default(uuid())
+  userId          String
+  title           String
+  templateId      String
+  content         Json     @default("{}")
+  isComplete      Boolean  @default(false)
+  completionScore Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template        Template @relation(fields: [templateId], references: [id])
+
+  @@index([userId])
+  @@map("resumes")
+}
+
+model Template {
+  id        String           @id @default(uuid())
+  name      String
+  category  TemplateCategory
+  thumbnail String
+  structure Json
+  isPremium Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  resumes   Resume[]
+
+  @@map("templates")
+}
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  userId               String
+  stripeSubscriptionId String             @unique
+  plan                 Plan
+  status               SubscriptionStatus
+  currentPeriodEnd     DateTime
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("subscriptions")
+}
+
