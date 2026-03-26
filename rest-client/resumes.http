@@ -1,8 +1,9 @@
 ### Variables
-@baseUrl = http://localhost:3000/api
-@token = your-jwt-token-here
-@resumeId = resume-uuid-here
+@baseUrl = http://localhost:3000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhNGY0MGJlNS1hYmIxLTQzN2MtYjBlYi0xMjZhY2U5ZmY4ZGYiLCJlbWFpbCI6ImNsYXVkZWJyaWxsaWFudEBnbWFpbC5jb20iLCJpYXQiOjE3NzQwMDE5OTQsImV4cCI6MTc3NDAwMjg5NH0.OOay0JeAfYWAYA2MWJLo5FUxXNiKaO7qADI4YD5M0gk
 @templateId = template-uuid-here
+
+@resumeId = resume-uuid-here
 
 ### ============================================
 ### RESUMES ENDPOINTS

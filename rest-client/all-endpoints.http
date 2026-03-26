@@ -3,7 +3,7 @@
 ### Quick Reference File
 ### ============================================
 
-@baseUrl = http://localhost:3000/api
+@baseUrl = http://localhost:3000
 @token = your-jwt-token-here
 @adminToken = admin-jwt-token-here
 
@@ -77,6 +77,6 @@
 ### ============================================
 ### SWAGGER DOCUMENTATION
 ### ============================================
-# GET    http://localhost:3000/api/docs
+# GET    http://localhost:3000/docs
 
 

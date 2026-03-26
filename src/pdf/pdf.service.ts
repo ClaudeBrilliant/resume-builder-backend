@@ -11,7 +11,8 @@ export class PdfService {
 
   constructor(private configService: ConfigService) {
     this.s3Client = new S3({
-      region: this.configService.get<string>('AWS_REGION'),
+      // Provide a sensible default region to avoid errors when AWS_REGION is missing
+      region: this.configService.get<string>('AWS_REGION') || 'us-east-1',
       credentials: {
         accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID') || '',
         secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY') || '',
@@ -22,7 +23,8 @@ export class PdfService {
 
   async generatePdf(resume: Resume & { template?: any }): Promise<Buffer> {
     const browser = await puppeteer.launch({
-      headless: true,
+      // opt-in to the new headless implementation to avoid deprecation warnings
+      headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 

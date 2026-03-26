@@ -27,7 +27,7 @@ You can import these files or manually add the endpoints to your API client.
 
 1. **Update Variables**: Edit the variables at the top of each file:
    ```http
-   @baseUrl = http://localhost:3000/api
+   @baseUrl = http://localhost:3000
    @token = your-jwt-token-here
    ```
 

@@ -1,12 +1,11 @@
 ### Variables
-@baseUrl = http://localhost:3000/api
-@token = your-jwt-token-here
-
+@baseUrl = http://localhost:3000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhNGY0MGJlNS1hYmIxLTQzN2MtYjBlYi0xMjZhY2U5ZmY4ZGYiLCJlbWFpbCI6ImNsYXVkZWJyaWxsaWFudEBnbWFpbC5jb20iLCJpYXQiOjE3NzQwMDE5OTQsImV4cCI6MTc3NDAwMjg5NH0.OOay0JeAfYWAYA2MWJLo5FUxXNiKaO7qADI4YD5M0gk
 ### ============================================
 ### AI ENDPOINTS (Rate Limited: 10 req/min)
 ### ============================================
 
-### Rewrite bullet points to be more impactful
+### Rewrite bullet point
 POST {{baseUrl}}/ai/rewrite
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -15,7 +14,7 @@ Content-Type: application/json
   "text": "Worked on various projects"
 }
 
-### Improve wording for professional impact
+### Improve wording
 POST {{baseUrl}}/ai/improve
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -30,11 +29,11 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "experience": "Software Engineer with 5 years of experience developing web applications using React, Node.js, and TypeScript",
+  "experience": "Software Engineer with 5 years of experience developing web applications using React, Node.js, and TypeScript.",
   "skills": ["JavaScript", "TypeScript", "React", "Node.js", "PostgreSQL"]
 }
 
-### Suggest skills based on experience
+### Suggest skills
 POST {{baseUrl}}/ai/suggest-skills
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -42,5 +41,4 @@ Content-Type: application/json
 {
   "experience": "Worked as a software engineer for 5 years developing web applications using React and Node.js. Led a team of 3 developers and implemented CI/CD pipelines."
 }
-
 

@@ -1,5 +1,5 @@
 ### Variables
-@baseUrl = http://localhost:3000/api
+@baseUrl = http://localhost:3000
 @token = your-jwt-token-here
 
 ### ============================================

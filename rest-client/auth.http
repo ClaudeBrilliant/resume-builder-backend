@@ -1,5 +1,5 @@
 ### Variables
-@baseUrl = http://localhost:3000/api
+@baseUrl = http://localhost:3000
 @token = your-jwt-token-here
 @refreshToken = your-refresh-token-here
 
@@ -22,8 +22,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "user@example.com",
-  "password": "password123"
+  "email": "claudebrilliant@gmail.com",
+  "password": "GHOST2030"
 }
 
 ### Refresh access token
