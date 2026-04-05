@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class PaymentsService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private emailService: EmailService,
   ) {
     this.paystackSecretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
   }
@@ -65,10 +67,13 @@ export class PaymentsService {
     const userId = metadata.userId;
     const plan = metadata.plan as 'FREE' | 'PRO'
     // Update user's plan
-    await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: { plan },
     });
+
+    const currentPeriodEnd = new Date();
+    currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
 
     // Create subscription record
     await this.prisma.subscription.create({
@@ -77,8 +82,18 @@ export class PaymentsService {
         paystackReference: reference,
         plan,
         status: 'ACTIVE',
+        currentPeriodEnd,
       },
     });
+
+    await this.emailService.sendSubscriptionReceiptEmail(
+      user.email,
+      user.name,
+      plan,
+      currentPeriodEnd,
+      reference,
+      amount / 100 // Convert kobo to KSh
+    );
 
     this.logger.log(`✅ User ${userId} upgraded to ${plan} plan`);
   }
@@ -216,11 +231,42 @@ export class PaymentsService {
 
     // Update user plan
     const { userId, plan } = data.data.metadata;
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { plan },
+    const amount = data.data.amount; // Ensure amount is extracted from verification
+    
+    // Check if subscription already exists (webhook might have beaten us)
+    const existingSub = await this.prisma.subscription.findFirst({
+      where: { paystackReference: reference }
     });
+
+    if (!existingSub) {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: { plan },
+      });
+
+      const currentPeriodEnd = new Date();
+      currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
+
+      await this.prisma.subscription.create({
+        data: {
+          userId,
+          paystackReference: reference,
+          plan,
+          status: 'ACTIVE',
+          currentPeriodEnd,
+        },
+      });
+
+      // Send the email here since we're creating it synchronously
+      await this.emailService.sendSubscriptionReceiptEmail(
+        user.email,
+        user.name,
+        plan,
+        currentPeriodEnd,
+        reference,
+        amount / 100 // Convert kobo to KSh
+      );
+    }
 
     return {
       status: 'success',

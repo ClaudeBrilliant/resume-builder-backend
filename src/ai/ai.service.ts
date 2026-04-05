@@ -553,4 +553,75 @@ Return this EXACT format:
       throw new BadRequestException('AI optimization failed');
     }
   }
+
+  /**
+   * Tune an existing CV based on a job description
+   */
+  async tuneCv(cvText: string, jobDescription: string): Promise<any> {
+    const system = `You are an expert ATS (Applicant Tracking System) optimizer and professional resume writer.
+Your goal is to "tune" an existing CV text to match a specific job description.
+
+Rules:
+1. Analyze the CV and JD to identify keywords, skills, and experiences that should be emphasized.
+2. Rephrase experience bullet points to better align with the job requirements.
+3. Suggest adding 3-5 keywords or skills that are missing but likely possessed by the candidate (inferred from experience).
+4. Identify irrelevant content that could be minimized.
+5. Provide a side-by-side comparison of major changes.
+6. Return ONLY valid JSON.
+
+Return this EXACT format:
+{
+  "originalContent": "the original CV text provided",
+  "tunedContent": "the full tuned and optimized CV text",
+  "changes": [
+    {
+      "category": "Experience" | "Skills" | "Summary" | "Other",
+      "original": "original text snippet",
+      "suggested": "suggested replacement snippet",
+      "reason": "why this change was made"
+    }
+  ],
+  "missingKeywords": ["keyword1", "keyword2"],
+  "highlightedSkills": ["skill1", "skill2"]
+}`;
+
+    const userMessage = JSON.stringify({
+      cvText,
+      jobDescription
+    });
+
+    try {
+      let response = '';
+      if (this.provider === 'anthropic') {
+        response = await this.callAnthropic(system, userMessage, {
+          temperature: 0.7,
+          max_tokens: 4000,
+        });
+      } else if (this.provider === 'openai') {
+        response = await this.callOpenAI([
+          { role: 'system', content: system },
+          { role: 'user', content: userMessage }
+        ], {
+          temperature: 0.7,
+          max_tokens: 4000,
+        });
+      } else {
+        response = await this.callGemini(`${system}\n\n${userMessage}`, {
+          temperature: 0.7,
+          maxTokens: 4000,
+        });
+      }
+
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('Could not parse AI response');
+      }
+
+      return JSON.parse(jsonMatch[0]);
+
+    } catch (err) {
+      this.logger.error('AI tuneCv failed', err);
+      throw new BadRequestException('AI tuning failed');
+    }
+  }
 }

@@ -15,8 +15,8 @@ export class AdminService {
       this.prisma.resume.count(),
       this.prisma.template.count(),
       this.prisma.subscription.count(),
-      this.prisma.subscription.count({
-        where: { status: 'ACTIVE' },
+      this.prisma.user.count({
+        where: { plan: 'PRO' },
       }),
     ]);
 
@@ -37,6 +37,46 @@ export class AdminService {
       },
     });
 
+    // Earnings Analytics (Last 6 Months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const proUsers = await this.prisma.user.findMany({
+      where: {
+        updatedAt: { gte: sixMonthsAgo },
+        plan: 'PRO',
+      },
+      select: { updatedAt: true },
+    });
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Initialize 6 months history
+    const revenueHistoryDict: Record<string, { subscriptions: number, earnings: number }> = {};
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const name = `${monthNames[d.getMonth()]} ${d.getFullYear().toString().slice(2)}`;
+      revenueHistoryDict[name] = { subscriptions: 0, earnings: 0 };
+    }
+
+    proUsers.forEach(user => {
+      const d = user.updatedAt;
+      const name = `${monthNames[d.getMonth()]} ${d.getFullYear().toString().slice(2)}`;
+      if (revenueHistoryDict[name]) {
+        revenueHistoryDict[name].subscriptions += 1;
+        revenueHistoryDict[name].earnings += 1500; // Assuming PRO plan = 1500 KSh
+      }
+    });
+
+    const revenueHistory = Object.entries(revenueHistoryDict).map(([name, data]) => ({
+      name,
+      subscriptions: data.subscriptions,
+      earnings: data.earnings,
+    }));
+
     return {
       overview: {
         totalUsers,
@@ -50,6 +90,7 @@ export class AdminService {
         count: item._count,
       })),
       recentUsers,
+      revenueHistory,
     };
   }
 

@@ -333,4 +333,114 @@ export class EmailService {
       // Don't throw - email failure shouldn't break password change
     }
   }
+
+  async sendSubscriptionReceiptEmail(email: string, name: string, plan: string, endDate: Date, reference: string, amount: number) {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:8080';
+    const formattedDate = endDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    
+    // Format amount with currency (Assuming KSh for this app)
+    const formattedAmount = `KSh ${amount.toLocaleString()}`;
+
+    const mailOptions = {
+      from: `"JazaCV" <${this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('SMTP_USER')}>`,
+      to: email,
+      subject: 'Payment Receipt - JazaCV',
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .header {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 30px;
+                text-align: center;
+                border-radius: 10px 10px 0 0;
+              }
+              .content {
+                background: #f9fafb;
+                padding: 30px;
+                border-radius: 0 0 10px 10px;
+              }
+              .button {
+                display: inline-block;
+                padding: 12px 30px;
+                background: #10b981;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                margin: 20px 0;
+              }
+              .receipt-table {
+                width: 100%;
+                margin: 20px 0;
+                border-collapse: collapse;
+              }
+              .receipt-table th, .receipt-table td {
+                padding: 10px;
+                border-bottom: 1px solid #e5e7eb;
+                text-align: left;
+              }
+              .receipt-total {
+                font-weight: bold;
+                font-size: 1.1em;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Subscription Receipt</h1>
+            </div>
+            <div class="content">
+              <h2>Hi ${name},</h2>
+              <p>Thank you for subscribing to JazaCV! We have successfully processed your payment.</p>
+              
+              <table class="receipt-table">
+                <tr>
+                  <th>Plan:</th>
+                  <td>${plan} Plan</td>
+                </tr>
+                <tr>
+                  <th>Reference Number:</th>
+                  <td>${reference}</td>
+                </tr>
+                <tr>
+                  <th>Subscription Ends:</th>
+                  <td><strong>${formattedDate}</strong></td>
+                </tr>
+                <tr class="receipt-total">
+                  <th>Amount Paid:</th>
+                  <td>${formattedAmount}</td>
+                </tr>
+              </table>
+
+              <p>You now have full access to our premium features.</p>
+              <a href="${frontendUrl}/dashboard" class="button">Go to Dashboard</a>
+              <p>Happy building!</p>
+            </div>
+          </body>
+        </html>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      return { success: true };
+    } catch (error) {
+      console.error('Error sending subscription email:', error);
+    }
+  }
 }
