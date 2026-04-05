@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum Plan {
@@ -35,7 +34,10 @@ model User {
   avatar           String?
   plan             Plan           @default(FREE)
   isAdmin          Boolean        @default(false)
+  isVerified       Boolean        @default(false)
+  verificationToken String?
   stripeCustomerId String?        @unique
+  paystackId       String?        @unique
   resetToken       String?
   resetTokenExpiry DateTime?
   createdAt        DateTime       @default(now())
@@ -83,10 +85,11 @@ model Template {
 model Subscription {
   id                   String             @id @default(uuid())
   userId               String
-  stripeSubscriptionId String             @unique
+  stripeSubscriptionId String?            @unique
+  paystackReference    String?            @unique
   plan                 Plan
   status               SubscriptionStatus
-  currentPeriodEnd     DateTime
+  currentPeriodEnd     DateTime?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 
@@ -94,5 +97,15 @@ model Subscription {
 
   @@index([userId])
   @@map("subscriptions")
+}
+
+model Log {
+  id        String   @id @default(uuid())
+  type      String
+  message   String
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@map("logs")
 }
 

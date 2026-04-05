@@ -38,7 +38,10 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     PaymentsModule,
     AdminModule,
     UsersModule,
+    EmailModule,
+    UploadModule,
   ],
+
   controllers: [AppController],
   providers: [
     AppService,
@@ -52,4 +55,4 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

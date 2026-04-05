@@ -17,7 +17,12 @@ async function bootstrap() {
   });
 
   // Body parser for file uploads
-  app.use(json({ limit: '10mb' }));
+  app.use(json({
+    limit: '10mb',
+    verify: (req: any, res: any, buf: Buffer) => {
+      req.rawBody = buf;
+    }
+  }));
   app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   // Global validation pipe
@@ -32,7 +37,7 @@ async function bootstrap() {
   // Global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  
+
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('JazaCV API')

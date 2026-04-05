@@ -3,6 +3,7 @@ import {
   Post,
   Body,
   Get,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -21,7 +22,7 @@ import { Public } from '../common/decorators/public.decorator';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Public()
   @Post('register')
@@ -60,6 +61,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Reset password with token' })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @Public()
+  @Get('verify-email')
+  @ApiOperation({ summary: 'Verify email with token' })
+  async verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
   }
 
   @UseGuards(JwtAuthGuard)

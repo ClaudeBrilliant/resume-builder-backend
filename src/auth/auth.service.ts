@@ -22,10 +22,10 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.prisma.user.findUnique({
+    const existingUser = await (this.prisma as any).user.findUnique({
       where: { email: registerDto.email },
     });
 
@@ -35,11 +35,14 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
-    const user = await this.prisma.user.create({
+    const verificationToken = uuidv4();
+
+    const user = await (this.prisma as any).user.create({
       data: {
         email: registerDto.email,
         name: registerDto.name,
         password: hashedPassword,
+        verificationToken,
       },
       select: {
         id: true,
@@ -47,25 +50,47 @@ export class AuthService {
         name: true,
         avatar: true,
         plan: true,
+        isAdmin: true,
         createdAt: true,
+        updatedAt: true,
       },
+
+
     });
 
-    const tokens = await this.generateTokens(user.id, user.email);
-
-    // Send welcome email (don't await - fire and forget)
-    this.emailService.sendWelcomeEmail(user.email, user.name).catch((error) => {
-      console.error('Failed to send welcome email:', error);
+    // Send verification email
+    await this.emailService.sendVerificationEmail(user.email, verificationToken).catch((error) => {
+      console.error('Failed to send verification email:', error);
     });
 
     return {
-      user,
-      ...tokens,
+      message: 'Registration successful. Please check your email to verify your account.',
+      email: user.email,
     };
   }
 
+  async verifyEmail(token: string) {
+    const user = await (this.prisma as any).user.findFirst({
+      where: { verificationToken: token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    await (this.prisma as any).user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationToken: null,
+      },
+    });
+
+    return { message: 'Email verified successfully' };
+  }
+
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.prisma.user.findUnique({
+    const user = await (this.prisma as any).user.findUnique({
       where: { email },
     });
 
@@ -83,7 +108,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    if (!user.isVerified) {
+      throw new UnauthorizedException('Please verify your email to login');
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email, user.isAdmin);
+
 
     return {
       user: {
@@ -92,7 +122,11 @@ export class AuthService {
         name: user.name,
         avatar: user.avatar,
         plan: user.plan,
+        isAdmin: user.isAdmin,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
+
       ...tokens,
     };
   }
@@ -103,7 +137,7 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
 
-      const user = await this.prisma.user.findUnique({
+      const user = await (this.prisma as any).user.findUnique({
         where: { id: payload.sub },
         select: {
           id: true,
@@ -111,14 +145,17 @@ export class AuthService {
           name: true,
           avatar: true,
           plan: true,
+          isAdmin: true,
         },
+
       });
 
       if (!user) {
         throw new UnauthorizedException();
       }
 
-      const tokens = await this.generateTokens(user.id, user.email);
+      const tokens = await this.generateTokens(user.id, user.email, user.isAdmin);
+
 
       return tokens;
     } catch {
@@ -127,7 +164,7 @@ export class AuthService {
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-    const user = await this.prisma.user.findUnique({
+    const user = await (this.prisma as any).user.findUnique({
       where: { email: forgotPasswordDto.email },
     });
 
@@ -140,7 +177,7 @@ export class AuthService {
     const resetTokenExpiry = new Date();
     resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1);
 
-    await this.prisma.user.update({
+    await (this.prisma as any).user.update({
       where: { id: user.id },
       data: {
         resetToken,
@@ -155,7 +192,7 @@ export class AuthService {
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    const user = await this.prisma.user.findFirst({
+    const user = await (this.prisma as any).user.findFirst({
       where: {
         resetToken: resetPasswordDto.token,
         resetTokenExpiry: {
@@ -170,12 +207,14 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(resetPasswordDto.password, 10);
 
-    await this.prisma.user.update({
+    await (this.prisma as any).user.update({
       where: { id: user.id },
       data: {
         password: hashedPassword,
         resetToken: null,
         resetTokenExpiry: null,
+        isVerified: true,
+        verificationToken: null,
       },
     });
 
@@ -183,7 +222,7 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
+    const user = await (this.prisma as any).user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -191,9 +230,11 @@ export class AuthService {
         name: true,
         avatar: true,
         plan: true,
+        isAdmin: true,
         createdAt: true,
         updatedAt: true,
       },
+
     });
 
     if (!user) {
@@ -203,13 +244,14 @@ export class AuthService {
     return user;
   }
 
-  private async generateTokens(userId: string, email: string) {
-    const payload = { sub: userId, email };
+  private async generateTokens(userId: string, email: string, isAdmin: boolean = false) {
+    const payload = { sub: userId, email, isAdmin };
+
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: '15m',
+        expiresIn: this.configService.get<string>('JWT_EXPIRATION') || '1d',
       }),
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),

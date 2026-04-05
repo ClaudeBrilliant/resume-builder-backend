@@ -9,6 +9,7 @@ import { SuggestSkillsDto } from './dto/suggest-skills.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 import { EnhanceBulletsDto } from './dto/enhance-bullets.dto';
+import { OptimizeCvDto } from './dto/optimize-cv.dto';
 
 @ApiTags('AI')
 @Controller('ai')
@@ -16,7 +17,7 @@ import { EnhanceBulletsDto } from './dto/enhance-bullets.dto';
 @ApiBearerAuth()
 @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
 export class AiController {
-  constructor(private readonly aiService: AiService) {}
+  constructor(private readonly aiService: AiService) { }
 
   @Get('models')
   @Public()
@@ -65,5 +66,11 @@ export class AiController {
   @ApiOperation({ summary: 'Suggest relevant skills based on work experience' })
   suggestSkills(@Body() suggestSkillsDto: SuggestSkillsDto) {
     return this.aiService.suggestSkills(suggestSkillsDto);
+  }
+
+  @Post('optimize')
+  @ApiOperation({ summary: 'Optimize the entire CV based on a job description' })
+  optimizeCv(@Body() optimizeCvDto: OptimizeCvDto) {
+    return this.aiService.optimizeCv(optimizeCvDto);
   }
 }
