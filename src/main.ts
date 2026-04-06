@@ -10,9 +10,26 @@ async function bootstrap() {
     rawBody: true, // Required for Stripe webhooks
   });
 
-  // CORS
+  // CORS - allow the frontend origin (set FRONTEND_URL in env when deploying).
+  // Default is the production frontend host. For local development we also allow common
+  // localhost origins (vite dev server on :8080 and backend on :3000). If you need to
+  // allow any origin during debugging, set ALLOW_ALL_ORIGINS=true in your env.
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || 'https://jazacv-frontend.onrender.com',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ];
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:8080',
+    origin: (origin, callback) => {
+      // `origin` is undefined for non-browser requests (curl/postman/server-side).
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (process.env.ALLOW_ALL_ORIGINS === 'true') return callback(null, true);
+      return callback(new Error('Origin not allowed by CORS'));
+    },
     credentials: true,
   });
 

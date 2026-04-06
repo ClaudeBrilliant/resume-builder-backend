@@ -1,34 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
-import { S3 } from '@aws-sdk/client-s3';
-import { Resume } from '@prisma/client';
 
 @Injectable()
 export class PdfService {
-  private s3Client: S3;
-  private bucketName: string;
+    private readonly logger = new Logger(PdfService.name);
 
-  constructor(private configService: ConfigService) {
-    this.s3Client = new S3({
-      // Provide a sensible default region to avoid errors when AWS_REGION is missing
-      region: this.configService.get<string>('AWS_REGION') || 'us-east-1',
-      credentials: {
-        accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID') || '',
-        secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY') || '',
-      },
-    });
-    this.bucketName = this.configService.get<string>('AWS_S3_BUCKET') || '';
-  }
-
-  async generatePdf(resume: Resume & { template?: any }): Promise<Buffer> {
+    async generatePdf(resume: any): Promise<Buffer> {
     const browser = await puppeteer.launch({
       // opt-in to the new headless implementation to avoid deprecation warnings
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
-    try {
+        try {
       const page = await browser.newPage();
 
       // Generate HTML from resume content and template
@@ -46,20 +30,17 @@ export class PdfService {
         },
       });
 
-      // Optionally upload to S3 - Disabled as per user request (not implemented yet)
-      /*
-      if (this.bucketName) {
-        await this.uploadToS3(resume.id, pdfBuffer);
-      }
-      */
 
       return pdfBuffer;
-    } finally {
-      await browser.close();
-    }
+        } catch (err) {
+            this.logger.error('Failed to generate PDF', err as any);
+            throw err;
+        } finally {
+            await browser.close();
+        }
   }
 
-  private generateHtml(resume: Resume & { template?: any }): string {
+    private generateHtml(resume: any): string {
     const content = resume.content as any;
     const personalInfo = content.personalInfo || {};
     const experiences = content.experience || [];
@@ -101,7 +82,7 @@ export class PdfService {
     `;
   }
 
-  private renderModern(personalInfo: any, experiences: any[], educations: any[], projects: any[], skills: any[]): string {
+    private renderModern(personalInfo: any, experiences: any[], educations: any[], projects: any[], skills: any[]): string {
     return `
       <div class="space-y-6">
           <div class="border-b-2 border-teal-600/40 pb-4">
@@ -186,7 +167,7 @@ export class PdfService {
     `;
   }
 
-  private renderProfessional(personalInfo: any, experiences: any[], educations: any[], projects: any[], skills: any[]): string {
+    private renderProfessional(personalInfo: any, experiences: any[], educations: any[], projects: any[], skills: any[]): string {
     return `
       <div class="grid grid-cols-[200px,1fr] gap-8 h-full">
           <div class="bg-slate-50 p-6 border-r border-slate-200" style="min-height: 100vh;">
@@ -272,7 +253,7 @@ export class PdfService {
     `;
   }
 
-  private renderCreative(personalInfo: any, experiences: any[], educations: any[], projects: any[], skills: any[]): string {
+    private renderCreative(personalInfo: any, experiences: any[], educations: any[], projects: any[], skills: any[]): string {
     return `
       <div class="flex flex-col h-full bg-white relative overflow-hidden">
           <div class="bg-indigo-600 text-white p-10 mb-8 relative">
