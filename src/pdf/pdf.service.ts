@@ -7,8 +7,8 @@ export class PdfService {
 
     async generatePdf(resume: any): Promise<Buffer> {
     const browser = await puppeteer.launch({
-      // opt-in to the new headless implementation to avoid deprecation warnings
-      headless: 'new',
+      // Use supported headless mode for this Puppeteer version
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
@@ -30,14 +30,46 @@ export class PdfService {
         },
       });
 
-
-      return pdfBuffer;
+      return Buffer.from(pdfBuffer);
         } catch (err) {
             this.logger.error('Failed to generate PDF', err as any);
             throw err;
         } finally {
             await browser.close();
         }
+  }
+
+  async generatePdfFromText(
+    title: string,
+    content: string,
+    templateCategory: 'MODERN' | 'PROFESSIONAL' | 'CREATIVE' = 'MODERN',
+  ): Promise<Buffer> {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+
+    try {
+      const page = await browser.newPage();
+      const html = this.generateTextHtml(content, templateCategory);
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '16mm',
+          right: '14mm',
+          bottom: '16mm',
+          left: '14mm',
+        },
+      });
+      return Buffer.from(pdfBuffer);
+    } catch (err) {
+      this.logger.error('Failed to generate PDF from text', err as any);
+      throw err;
+    } finally {
+      await browser.close();
+    }
   }
 
     private generateHtml(resume: any): string {
@@ -77,6 +109,67 @@ export class PdfService {
         </head>
         <body class="bg-white">
           ${bodyContent}
+        </body>
+      </html>
+    `;
+  }
+
+  private escapeHtml(input: string): string {
+    return (input || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  private generateTextHtml(
+    content: string,
+    templateCategory: 'MODERN' | 'PROFESSIONAL' | 'CREATIVE',
+  ): string {
+    const safeContent = this.escapeHtml(content || '');
+    const category = (templateCategory || 'MODERN').toUpperCase();
+
+    const themeByCategory: Record<string, { accent: string; paper: string; text: string }> = {
+      MODERN: { accent: '#0f766e', paper: '#ffffff', text: '#0f172a' },
+      PROFESSIONAL: { accent: '#334155', paper: '#ffffff', text: '#111827' },
+      CREATIVE: { accent: '#4f46e5', paper: '#ffffff', text: '#1f2937' },
+    };
+    const theme = themeByCategory[category] || themeByCategory.MODERN;
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+            html, body {
+              font-family: 'Inter', sans-serif;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              background: ${theme.paper};
+              color: ${theme.text};
+            }
+            .cv-wrap {
+              border-top: 6px solid ${theme.accent};
+              padding-top: 12px;
+            }
+            pre {
+              white-space: pre-wrap;
+              word-wrap: break-word;
+              font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+              font-size: 11px;
+              line-height: 1.5;
+              color: #111827;
+              margin: 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="cv-wrap">
+            <pre>${safeContent}</pre>
+          </div>
         </body>
       </html>
     `;

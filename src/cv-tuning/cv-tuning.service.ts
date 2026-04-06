@@ -2,19 +2,9 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { AiService } from '../ai/ai.service';
 import * as mammoth from 'mammoth';
 import { Express } from 'express';
+import * as path from 'path';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-// pdf-parse is published as CommonJS/ESM; require(...) may return the function or an object with a `default` export.
-// Normalize to a callable function to avoid "pdfParse is not a function" runtime errors.
-let pdfParse: any;
-try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const _pdf = require('pdf-parse');
-    pdfParse = _pdf && typeof _pdf === 'object' && 'default' in _pdf ? _pdf.default : _pdf;
-} catch (e) {
-    // If the module can't be loaded, keep pdfParse undefined and let the runtime throw a clear error later.
-    // Logger isn't available at module scope; errors will be logged when parsing is attempted.
-    pdfParse = undefined;
-}
+const pdfParseModule = require('pdf-parse');
 
 @Injectable()
 export class CvTuningService {
@@ -22,22 +12,65 @@ export class CvTuningService {
 
     constructor(private readonly aiService: AiService) { }
 
+    private resolveFileType(file: Express.Multer.File): 'pdf' | 'doc' | 'txt' | 'unknown' {
+        const mime = file?.mimetype;
+        const ext = path.extname(file?.originalname || '').toLowerCase();
+
+        if (mime === 'application/pdf' || ext === '.pdf') return 'pdf';
+        if (
+            mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+            mime === 'application/msword' ||
+            ext === '.docx' ||
+            ext === '.doc'
+        ) return 'doc';
+        if (mime === 'text/plain' || ext === '.txt') return 'txt';
+        return 'unknown';
+    }
+
+    private async extractPdfText(buffer: Buffer): Promise<string> {
+        // pdf-parse v2 API: new PDFParse({ data }).getText()
+        const PDFParseCtor =
+            pdfParseModule?.PDFParse ||
+            pdfParseModule?.default?.PDFParse;
+
+        if (typeof PDFParseCtor === 'function') {
+            const parser = new PDFParseCtor({ data: buffer });
+            try {
+                const result = await parser.getText();
+                return result?.text || '';
+            } finally {
+                if (typeof parser.destroy === 'function') {
+                    await parser.destroy();
+                }
+            }
+        }
+
+        // Backward compatibility for older pdf-parse versions.
+        const legacyFn =
+            (typeof pdfParseModule === 'function' && pdfParseModule) ||
+            (typeof pdfParseModule?.default === 'function' && pdfParseModule.default);
+
+        if (typeof legacyFn === 'function') {
+            const result = await legacyFn(buffer);
+            return result?.text || '';
+        }
+
+        throw new Error('Unsupported pdf-parse export format');
+    }
+
     async tuneCv(file: Express.Multer.File, jobDescription: string) {
         let text = '';
 
         try {
             this.logger.log(`Received file with mimetype=${file?.mimetype} size=${file?.buffer?.length ?? 0}`);
-            this.logger.log(`pdfParse available: ${typeof pdfParse === 'function'}`);
-            if (file.mimetype === 'application/pdf') {
-                const data = await pdfParse(file.buffer);
-                text = data.text;
-            } else if (
-                file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-                file.mimetype === 'application/msword'
-            ) {
+            const fileType = this.resolveFileType(file);
+
+            if (fileType === 'pdf') {
+                text = await this.extractPdfText(file.buffer);
+            } else if (fileType === 'doc') {
                 const result = await mammoth.extractRawText({ buffer: file.buffer });
                 text = result.value;
-            } else if (file.mimetype === 'text/plain') {
+            } else if (fileType === 'txt') {
                 text = file.buffer.toString('utf-8');
             } else {
                 throw new BadRequestException('Unsupported file format. Please upload PDF, DOCX, or TXT.');

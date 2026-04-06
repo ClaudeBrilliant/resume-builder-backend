@@ -567,7 +567,9 @@ Rules:
 3. Suggest adding 3-5 keywords or skills that are missing but likely possessed by the candidate (inferred from experience).
 4. Identify irrelevant content that could be minimized.
 5. Provide a side-by-side comparison of major changes.
-6. Return ONLY valid JSON.
+6. In tunedContent, use plain text only. Do NOT use markdown formatting (no **bold**, no headers with #, no numbered markdown, no markdown tables).
+7. For lists in tunedContent, use simple bullet points that begin with "- ".
+8. Return ONLY valid JSON.
 
 Return this EXACT format:
 {
