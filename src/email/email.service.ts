@@ -18,11 +18,12 @@ export class EmailService {
       host: smtpHost,
       port: smtpPort,
       secure: smtpSecure,
+      family: 4,
       auth: {
         user: smtpUser,
         pass: this.configService.get<string>('SMTP_PASS'),
       },
-    });
+    } as any);
   }
 
   async onModuleInit() {
