@@ -1,99 +1,112 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# JazaCV Resume Builder — Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## What this project is
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This repository is the backend API for the JazaCV resume builder platform. It provides authentication, user profile management, resume storage, template access control, PDF generation, AI-powered resume improvements, CV tuning, file uploads, subscription payments, and admin operations.
 
-## Description
+## What the project is all about
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+JazaCV helps job seekers build stronger resumes faster. The backend powers:
 
-## Project setup
+- user registration, login, and JWT-based authentication
+- resume creation and editing with structured sections
+- selection of professional templates, including free and premium options
+- AI enhancements for bullets, summaries, and skills
+- CV tuning from uploaded resumes plus job descriptions
+- PDF resume export
+- payment-based plan upgrades with Paystack
+- Cloudinary file uploads for avatars and document storage
+- admin tools for managing templates and monitoring resumes
 
-```bash
-$ npm install
-```
+## How it works
 
-## Compile and run the project
+1. A user registers or logs in through the frontend.
+2. The frontend sends requests to this backend with a JWT token.
+3. The user selects a resume template and builds content in sections like experience, education, skills, and projects.
+4. Resumes are saved to PostgreSQL via Prisma and linked to the user.
+5. Premium templates are blocked for free users; PRO plan users can use them.
+6. Users can download resumes as PDF using the backend's Puppeteer-based PDF generator.
+7. The AI module can rewrite, improve, summarize, and suggest skills using OpenAI, Gemini, or Anthropic.
+8. The CV tuning feature accepts PDF/DOCX/TXT uploads plus a job description and returns AI-suggested improvements.
+9. The payments module verifies Paystack transactions and updates user plans.
+10. Admin endpoints let admins manage templates, view resumes, and perform moderation.
 
-```bash
-# development
-$ npm run start
+## Core features
 
-# watch mode
-$ npm run start:dev
+- Authentication and authorization with Passport JWT
+- User profile updates, avatar uploads, password change
+- Resume CRUD operations, duplication, and PDF export
+- Template filtering by free/pro plan
+- AI resume rewriting, improvement, summary, and skill suggestions
+- CV tuning for uploaded files with targeted job description matching
+- Paystack payment initialization, verification, and webhook handling
+- Cloudinary file management for avatars and CV uploads
+- Swagger API docs available at `/docs`
+- Global validation, exception handling, and rate limiting
 
-# production mode
-$ npm run start:prod
-```
+## Architecture
 
-## Run tests
+- NestJS server
+- Prisma ORM with PostgreSQL
+- Cloudinary for uploads
+- Paystack for payments
+- OpenAI / Anthropic / Gemini for AI enrichment
+- Redis + Bull queue support
+- Puppeteer for PDF generation
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Getting started
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+cd resume-builder-backend
+npm install
+npm run prisma:generate
+npm run prisma:migrate dev
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Then open http://localhost:3000 and http://localhost:3000/docs for API documentation.
 
-## Resources
+## Recommended environment variables
 
-Check out a few resources that may come in handy when working with NestJS:
+Create a `.env` file with the following values:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```env
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+JWT_SECRET=your_jwt_secret_here
+JWT_EXPIRATION=1d
+FRONTEND_URL=http://localhost:8080
+ALLOW_ALL_ORIGINS=true
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_key
+CLOUDINARY_API_SECRET=your_cloudinary_secret
+AI_PROVIDER=anthropic
+OPENAI_API_KEY=your_openai_api_key
+GOOGLE_API_KEY=your_google_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+OPENAI_MODEL=gpt-3.5-turbo
+GEMINI_PRO_MODEL=gemini-pro
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
+PAYSTACK_SECRET_KEY=your_paystack_secret_key
+```
 
-## Support
+> Note: Set only the keys required by your chosen AI provider.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Useful commands
 
-## Stay in touch
+- `npm run start:dev` — run in development mode with hot reload
+- `npm run build` — compile production build
+- `npm run start:prod` — run compiled production server
+- `npm run test` — run Jest tests
+- `npm run test:e2e` — run end-to-end tests
+- `npm run test:cov` — generate coverage report
+- `npm run prisma:studio` — open Prisma Studio
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## API documentation
 
-## License
+Swagger docs are available at `/docs` once the backend is running.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Notes
+
+- The service uses `http://localhost:3000` by default for local development.
+- The frontend should call this backend with the same host or by setting `VITE_API_URL`.
+- Make sure Redis and PostgreSQL are available if you use queue processing or Prisma migrations.
